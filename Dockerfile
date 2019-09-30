@@ -1,21 +1,27 @@
-FROM debian:stretch
+FROM debian:buster
 
 # Install
 RUN dpkg --add-architecture i386 && \
 	apt update && \
 	DEBIAN_FRONTEND='noninteractive' apt install -y --no-install-recommends ca-certificates gnupg2 wget && \
 	wget -O- https://dl.winehq.org/wine-builds/winehq.key | apt-key add - && \
-	apt purge -y gnupg2 wget && \
-	apt autoremove -y && \
 	sed -i 's/main/main contrib non-free/g' /etc/apt/sources.list && \
-	echo "\ndeb http://dl.winehq.org/wine-builds/debian/ stretch main\n" >> /etc/apt/sources.list && \
+	echo "\ndeb http://dl.winehq.org/wine-builds/debian/ buster main\n" >> /etc/apt/sources.list && \
+	wget https://download.opensuse.org/repositories/Emulators:/Wine:/Debian/Debian_10/amd64/libfaudio0_19.09-0~buster_amd64.deb && \
+	wget https://download.opensuse.org/repositories/Emulators:/Wine:/Debian/Debian_10/i386/libfaudio0_19.09-0~buster_i386.deb && \
+	apt install -y --no-install-recommends ./*.deb && \
+	apt full-upgrade -y && \
 	apt update && \
-	DEBIAN_FRONTEND='noninteractive' apt install -y --no-install-recommends  \
-		winehq-devel \
-		fonts-wine \
+	DEBIAN_FRONTEND='noninteractive' apt install -y --no-install-recommends \
+		winehq-staging \
 		winetricks \
-		ttf-mscorefonts-installer \
 		&& \
 	useradd -m -s /bin/bash wine && \
+	wget https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks -O /home/wine/winetricks && \
+	chown wine:wine /home/wine/winetricks && \
+	chmod +x /home/wine/winetricks && \
+	apt autoremove -y && \
 	apt clean && \
+	rm -f *.deb && \
 	rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
